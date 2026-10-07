@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Attendance Management</title>
+<link rel="stylesheet" href="/css/admin.css">
+</head>
+
+<body>
+
+<div class="main-container">
+
+  <!-- LEFT SIDE (ADD ATTENDANCE) -->
+  <div class="form-box">
+    <h2>Add Attendance</h2>
+
+    <input type="text" id="class" placeholder="Class">
+    <input type="number" id="roll" placeholder="Roll No">
+    <input type="text" id="name" placeholder="Student Name">
+
+    <select id="status">
+      <option value="">Select Status</option>
+      <option value="Present">Present</option>
+      <option value="Absent">Absent</option>
+    </select>
+
+    <input type="text" id="faculty" placeholder="Faculty Name">
+
+    <button onclick="addAttendance()">Add Attendance</button>
+  </div>
+
+  <!-- RIGHT SIDE (SEARCH + TABLE) -->
+  <div class="table-box">
+
+    <h2>Search Attendance</h2>
+
+    <input type="text" id="searchRoll" placeholder="Search by Roll No">
+    <input type="text" id="searchName" placeholder="Search by Name">
+
+    <button onclick="searchAttendance()">Search</button>
+
+    <h3>Attendance List</h3>
+
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Class</th>
+          <th>Roll</th>
+          <th>Name</th>
+          <th>Status</th>
+          <th>Faculty</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+
+      <tbody id="attendanceTable"></tbody>
+    </table>
+
+  </div>
+
+</div>
+
+<script>
+
+let allAttendance = []
+
+// ✅ ADD ATTENDANCE
+async function addAttendance(){
+
+let data = {
+  class: document.getElementById("class").value,
+  roll: document.getElementById("roll").value,
+  name: document.getElementById("name").value,
+  status: document.getElementById("status").value,
+  faculty: document.getElementById("faculty").value
+}
+
+await fetch("/addAttendance",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify(data)
+})
+
+alert("Attendance Added ✅")
+
+loadAttendance()
+}
+
+// ✅ LOAD DATA
+async function loadAttendance(){
+
+let res = await fetch("/attendance")
+let data = await res.json()
+
+allAttendance = data
+displayAttendance(data)
+}
+
+// ✅ DISPLAY TABLE
+function displayAttendance(data){
+
+let table = document.getElementById("attendanceTable")
+table.innerHTML = ""
+
+data.forEach((a,index)=>{
+
+table.innerHTML += `
+<tr>
+<td>${index+1}</td>
+<td>${a.class}</td>
+<td>${a.roll}</td>
+<td>${a.name}</td>
+<td>${a.status}</td>
+<td>${a.faculty}</td>
+
+<td>
+<button onclick="editAttendance('${a._id}','${a.class}','${a.division}','${a.roll}','${a.name}','${a.status}','${a.faculty}')">Edit</button>
+<button onclick="deleteAttendance('${a._id}')">Delete</button>
+</td>
+
+</tr>
+`
+})
+}
+
+// ✅ SEARCH
+function searchAttendance(){
+
+let roll = document.getElementById("searchRoll").value.toLowerCase()
+let name = document.getElementById("searchName").value.toLowerCase()
+
+let filtered = allAttendance.filter(a =>
+  (a.roll + "").includes(roll) &&
+  a.name.toLowerCase().includes(name)
+)
+
+displayAttendance(filtered)
+}
+
+// ✅ DELETE
+async function deleteAttendance(id){
+  await fetch("/deleteAttendance/" + id, { method: "DELETE" })
+  loadAttendance()
+}
+
+// ✅ EDIT
+async function editAttendance(id,cls,roll,name,status,faculty){
+
+let newClass = prompt("Class", cls)
+let newRoll = prompt("Roll", roll)
+let newName = prompt("Name", name)
+let newStatus = prompt("Status (Present/Absent)", status)
+let newFaculty = prompt("Faculty", faculty)
+
+await fetch("/updateAttendance/" + id,{
+method:"PUT",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({
+  class:newClass,
+  roll:newRoll,
+  name:newName,
+  status:newStatus,
+  faculty:newFaculty
+})
+})
+
+loadAttendance()
+}
+
+// ✅ AUTO LOAD
+window.onload = function(){
+  loadAttendance()
+}
+
+</script>
+
+</body>
+</html>

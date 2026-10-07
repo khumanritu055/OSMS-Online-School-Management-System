@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Admin Dashboard</title>
+<link rel="stylesheet" href="/css/admin.css">
+</head>
+
+<body>
+   <script>
+function showLogin(path) {
+  window.location.href = path;
+}
+</script>
+<h1>Admin Dashboard</h1>
+
+<div class="button-container">
+<button onclick="showLogin('/student-management')">Student Management</button>
+<button onclick="showLogin('/faculty-management')">Faculty Management</button>
+<button onclick="showLogin('/fees-management')">Fees Management</button>
+<button onclick="showLogin('/attendance-management')">Attendance Management</button>
+<script>
+
+
+/* ===================== FACULTY ===================== */
+
+async function addFaculty(){
+
+let name=document.getElementById("facultyName").value
+
+await fetch("/addFaculty",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({name})
+})
+
+loadFaculty()
+}
+
+async function loadFaculty(){
+
+let res=await fetch("/faculty")
+let data=await res.json()
+
+let table=document.getElementById("facultyTable")
+table.innerHTML=""
+
+data.forEach((f,index)=>{
+
+table.innerHTML+=`
+<tr>
+<td>${index+1}</td>
+<td>${f.name}</td>
+<td>
+<button onclick="editFaculty('${f._id}','${f.name}')">Edit</button>
+<button onclick="deleteFaculty('${f._id}')">Delete</button>
+</td>
+</tr>
+`
+})
+}
+
+async function deleteFaculty(id){
+await fetch("/deleteFaculty/"+id,{method:"DELETE"})
+loadFaculty()
+}
+
+async function editFaculty(id,name){
+
+let newName=prompt("Edit Name",name)
+
+await fetch("/updateFaculty/"+id,{
+method:"PUT",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({name:newName})
+})
+
+loadFaculty()
+}
+
+/* ===================== FEES ===================== */
+
+async function addFees(){
+
+let name=document.getElementById("feeStudent").value
+let className=document.getElementById("feeClass").value
+let amount=document.getElementById("feeAmount").value
+let mode=document.getElementById("feeMode").value
+
+await fetch("/addFees",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({
+name:name,
+class:className,
+amount:amount,
+mode:mode,
+date:new Date().toLocaleDateString(),
+receiptNo:Math.floor(Math.random()*100000)
+})
+})
+
+loadFees()
+}
+
+async function loadFees(){
+
+let res=await fetch("/fees")
+let data=await res.json()
+
+let table=document.getElementById("feesTable")
+table.innerHTML=""
+
+data.forEach((f)=>{
+
+table.innerHTML+=`
+<tr>
+<td>${f.name}</td>
+<td>${f.class}</td>
+<td>${f.amount}</td>
+<td>${f.mode}</td>
+<td>${f.date}</td>
+<td>
+<button onclick="editFees('${f._id}','${f.amount}','${f.mode}')">Edit</button>
+<button onclick="deleteFees('${f._id}')">Delete</button>
+</td>
+</tr>
+`
+})
+}
+
+async function deleteFees(id){
+await fetch("/deleteFees/"+id,{method:"DELETE"})
+loadFees()
+}
+
+async function editFees(id,amount,mode){
+
+let newAmount=prompt("Edit Amount",amount)
+let newMode=prompt("Edit Mode",mode)
+
+await fetch("/updateFees/"+id,{
+method:"PUT",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({amount:newAmount,mode:newMode})
+})
+
+loadFees()
+}
+
+/* ===================== ATTENDANCE ===================== */
+
+async function addAttendance(){
+
+let roll=document.getElementById("rollNo").value
+let name=document.getElementById("studentNameA").value
+let status=document.getElementById("status").value
+
+await fetch("/addAttendance",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({roll,name,status})
+})
+
+loadAttendance()
+}
+
+async function loadAttendance(){
+
+let res=await fetch("/attendance")
+let data=await res.json()
+
+let table=document.getElementById("attendanceTable")
+table.innerHTML=""
+
+data.forEach((a)=>{
+
+let colorClass=a.status==="Present"?"present":"absent"
+
+table.innerHTML+=`
+<tr>
+<td>${a.roll}</td>
+<td>${a.name}</td>
+<td class="${colorClass}">${a.status}</td>
+<td>
+<button onclick="editAttendance('${a._id}','${a.status}')">Edit</button>
+<button onclick="deleteAttendance('${a._id}')">Delete</button>
+</td>
+</tr>
+`
+})
+}
+
+async function deleteAttendance(id){
+await fetch("/deleteAttendance/"+id,{method:"DELETE"})
+loadAttendance()
+}
+
+async function editAttendance(id,status){
+
+let newStatus=prompt("Edit Status (Present/Absent)",status)
+
+await fetch("/updateAttendance/"+id,{
+method:"PUT",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({status:newStatus})
+})
+
+loadAttendance()
+}
+
+/* ===================== AUTO LOAD ===================== */
+
+window.onload = function(){
+loadStudents()
+loadFaculty()
+loadAttendance()
+loadFees()
+}
+
+</script>
+<script>
+async function loadStudents(){
+
+let res = await fetch("/students")
+let data = await res.json()
+
+console.log("DATA:", data) // 👈 check browser console
+
+let table = document.getElementById("studentTable")
+table.innerHTML = ""
+
+data.forEach((s, index) => {
+  table.innerHTML += `
+  <tr>
+    <td>${index+1}</td>
+    <td>${s.name}</td>
+    <td>${s.gender || "-"}</td>
+    <td>${s.phone || "-"}</td>
+    <td>${s.std || "-"}</td>
+    <td>
+      <button onclick="deleteStudent('${s._id}')">Delete</button>
+    </td>
+  </tr>
+  `
+})
+}
+
+async function deleteStudent(id){
+  await fetch("/deleteStudent/" + id, { method: "DELETE" })
+  loadStudents()
+}
+
+// 🔥 PAGE LOAD pe auto call
+loadStudents()
+</script>
+<script>
+async function loadAttendance(){
+  let res = await fetch("/attendance")
+  let data = await res.json()
+
+  let html = ""
+
+  data.forEach(a=>{
+    html += `
+      <div class="profile-card">
+        <p>${a.name} (${a.roll})</p>
+        <p>Status: ${a.status}</p>
+        <p>Faculty: ${a.faculty}</p>
+      </div>
+    `
+  })
+
+  document.getElementById("attendanceList").innerHTML = html
+}
+
+loadAttendance()
+</script>
+</body>
+</html>

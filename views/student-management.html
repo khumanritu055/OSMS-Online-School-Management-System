@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Student Management</title>
+<link rel="stylesheet" href="/css/admin.css">
+</head>
+
+<body>
+
+<div class="main-container">
+
+  <!-- LEFT SIDE FORM -->
+  <div class="form-box">
+    <h2>Student Management</h2>
+
+    <input type="text" id="name" placeholder="Full Name" required>
+    <input type="email" id="email" placeholder="Email" required>
+    <input type="text" id="phone" placeholder="Phone" required>
+    <input type="password" id="password" placeholder="Password" required>
+
+    <select id="std">
+      <option value="">Select Class</option>
+      <option>1</option><option>2</option><option>3</option>
+      <option>4</option><option>5</option><option>6</option>
+      <option>7</option><option>8</option><option>9</option>
+      <option>10</option>
+    </select>
+
+    <input type="text" id="address" placeholder="Address">
+
+    <button onclick="addStudent()">Add Student</button>
+
+    <input type="text" id="searchBox" placeholder="Search..." onkeyup="searchStudents()">
+
+  </div>
+
+  <!-- RIGHT SIDE TABLE -->
+  <div class="table-box">
+    <h2>Student List</h2>
+
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Phone</th>
+          <th>Class</th>
+          <th>Address</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+
+      <tbody id="studentTable"></tbody>
+    </table>
+  </div>
+
+</div>
+
+<script>
+
+let allStudents = []
+
+// ✅ ADD STUDENT
+async function addStudent(){
+
+let data = {
+  name: document.getElementById("name").value,
+  email: document.getElementById("email").value,
+  phone: document.getElementById("phone").value,
+  password: document.getElementById("password").value,
+  std: document.getElementById("std").value,
+  address: document.getElementById("address").value
+}
+
+await fetch("/addStudent",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify(data)
+})
+
+alert("Student Added ✅")
+
+document.getElementById("name").value=""
+document.getElementById("email").value=""
+document.getElementById("phone").value=""
+document.getElementById("password").value=""
+document.getElementById("std").value=""
+document.getElementById("address").value=""
+
+loadStudents()
+}
+
+// ✅ LOAD STUDENTS
+async function loadStudents(){
+
+let res = await fetch("/students")
+let data = await res.json()
+
+allStudents = data
+displayStudents(data)
+}
+
+// ✅ DISPLAY TABLE
+function displayStudents(data){
+
+let table = document.getElementById("studentTable")
+table.innerHTML = ""
+
+data.forEach((s,index)=>{
+
+table.innerHTML += `
+<tr>
+<td>${index+1}</td>
+<td>${s.name}</td>
+<td>${s.email || "-"}</td>
+<td>${s.phone || "-"}</td>
+<td>${s.std || "-"}</td>
+<td>${s.address || "-"}</td>
+
+<td>
+<button onclick="editStudent('${s._id}','${s.name}','${s.email}','${s.phone}','${s.std}','${s.address}')">Edit</button>
+<button onclick="deleteStudent('${s._id}')">Delete</button>
+</td>
+
+</tr>
+`
+})
+}
+
+// ✅ SEARCH
+function searchStudents(){
+
+let keyword = document.getElementById("searchBox").value.toLowerCase()
+
+let filtered = allStudents.filter(s =>
+  s.name.toLowerCase().includes(keyword)
+)
+
+displayStudents(filtered)
+}
+
+// ✅ DELETE
+async function deleteStudent(id){
+
+await fetch("/deleteStudent/" + id,{
+method:"DELETE"
+})
+
+loadStudents()
+}
+
+// ✅ EDIT
+async function editStudent(id,name,email,phone,std,address){
+
+let newName = prompt("Edit Name", name)
+let newEmail = prompt("Edit Email", email)
+let newPhone = prompt("Edit Phone", phone)
+let newStd = prompt("Edit Class", std)
+let newAddress = prompt("Edit Address", address)
+
+await fetch("/updateStudent/" + id,{
+method:"PUT",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({
+  name:newName,
+  email:newEmail,
+  phone:newPhone,
+  std:newStd,
+  address:newAddress
+})
+})
+
+loadStudents()
+}
+
+// ✅ AUTO LOAD
+window.onload = function(){
+  loadStudents()
+}
+
+</script>
+
+</body>
+</html>

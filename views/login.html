@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Login System</title>
+
+<style>
+body{
+  font-family: Arial;
+  text-align:center;
+  background:#f0f2f5;
+}
+.container{
+  margin-top:50px;
+}
+button{
+  padding:10px 20px;
+  margin:10px;
+  cursor:pointer;
+}
+#loginForm{
+  display:none;
+  margin-top:20px;
+}
+</style>
+</head>
+
+<body>
+
+<h1>User Login</h1>
+
+<div class="container">
+
+<!-- ✅ BUTTONS -->
+<button onclick="showLogin('Admin')">Admin Login</button>
+<button onclick="showLogin('Student')">Student Login</button>
+<button onclick="showLogin('Faculty')">Faculty Login</button>
+
+<!-- ✅ LOGIN FORM -->
+<div id="loginForm">
+
+<h2 id="roleTitle"></h2>
+
+<input type="hidden" id="roleInput">
+
+<!-- Student -->
+<div id="studentFields" style="display:none;">
+  <input type="text" id="studentName" placeholder="Username"><br><br>
+  <input type="password" id="studentPassword" placeholder="Password"><br><br>
+</div>
+
+<!-- Admin/Faculty -->
+<div id="otherFields" style="display:none;">
+  <input type="email" id="email" placeholder="Email"><br><br>
+  <input type="password" id="password" placeholder="Password"><br><br>
+</div>
+
+<button onclick="login()">Login</button>
+
+</div>
+
+</div>
+
+<script>
+
+// ✅ SHOW FORM
+function showLogin(role){
+  document.getElementById("loginForm").style.display = "block"
+  document.getElementById("roleTitle").innerText = role + " Login"
+  document.getElementById("roleInput").value = role
+
+  // hide all
+  document.getElementById("studentFields").style.display = "none"
+  document.getElementById("otherFields").style.display = "none"
+
+  // show based on role
+  if(role === "Student"){
+    document.getElementById("studentFields").style.display = "block"
+  } else {
+    document.getElementById("otherFields").style.display = "block"
+  }
+}
+
+// ✅ LOGIN FUNCTION
+async function login(){
+
+let role = document.getElementById("roleInput").value
+let name, password;
+
+if(role === "Student"){
+  name = document.getElementById("studentName").value
+  password = document.getElementById("studentPassword").value
+}
+else{
+  name = document.getElementById("email").value
+  password = document.getElementById("password").value
+}
+
+let res = await fetch("/login",{
+  method:"POST",
+  headers:{"Content-Type":"application/json"},
+  body: JSON.stringify({ role, name, password })
+})
+
+// ❌ invalid login
+if(!res.ok){
+  let msg = await res.text()
+  alert(msg)
+  return
+}
+
+// ✅ success
+if(role === "Student"){
+  let user = await res.json()
+  localStorage.setItem("student", JSON.stringify(user))
+  window.location.href = "/student-dashboard.html"
+}
+else{
+  let url = await res.text()
+  window.location.href = url
+}
+}
+
+</script>
+
+</body>
+</html>

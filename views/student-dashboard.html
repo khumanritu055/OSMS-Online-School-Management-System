@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Student Dashboard</title>
+<link rel="stylesheet" href="/css/student.css">
+</head>
+
+<body>
+
+<h1>Student Dashboard</h1>
+
+<!-- ✅ PROFILE -->
+<div id="profile"></div>
+
+<h2>📅 Attendance</h2>
+
+<table border="1" width="100%" cellpadding="10">
+<thead>
+<tr>
+<th>Roll No</th>
+<th>Name</th>
+<th>Status</th>
+<th>Faculty</th>
+</tr>
+</thead>
+
+<tbody id="attendanceTable"></tbody>
+</table>
+
+
+<h2>📘 Syllabus</h2>
+
+<table border="1" width="100%" cellpadding="10">
+<thead>
+<tr>
+<th>Subject</th>
+<th>Topic</th>
+<th>Date</th>
+<th>Faculty</th>
+</tr>
+</thead>
+
+<tbody id="syllabusTable"></tbody>
+</table>
+
+<script>
+
+// ✅ PROFILE
+let student = JSON.parse(localStorage.getItem("student"))
+
+document.getElementById("profile").innerHTML = `
+  <div class="profile-card">
+    <h2>${student.name}</h2>
+    <p>${student.email || ""}</p>
+    <p><b>Class:</b> ${student.class}</p>
+  </div>
+`
+
+// ✅ ATTENDANCE
+async function loadAttendance(){
+
+let res = await fetch("/attendance")
+let data = await res.json()
+
+let html = ""
+
+data.forEach(a=>{
+  if(a.roll == student.roll){   // 🎯 filter
+    html += `
+      <tr>
+        <td>${a.roll}</td>
+        <td>${a.name}</td>
+        <td style="color:${a.status==='Present'?'green':'red'}">
+          ${a.status}
+        </td>
+        <td>${a.faculty}</td>
+      </tr>
+    `
+  }
+})
+
+document.getElementById("attendanceTable").innerHTML = html
+}
+
+// ✅ SYLLABUS
+async function loadSyllabus(){
+
+let res = await fetch("/syllabus")
+let data = await res.json()
+
+let html = ""
+
+data.forEach(s=>{
+  html += `
+    <tr>
+      <td>${s.subject}</td>
+      <td>${s.topic}</td>
+      <td>${s.date}</td>
+      <td>${s.faculty}</td>
+     ${s.pdf ? `<a href="${s.pdf}" target="_blank">📄 View PDF</a>` : ""}
+    </tr>
+  `
+})
+
+document.getElementById("syllabusTable").innerHTML = html
+}
+
+// ✅ AUTO LOAD
+loadAttendance()
+loadSyllabus()
+
+</script>
+</body>
+</html>

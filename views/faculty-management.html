@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Admin Dashboard</title>
+<link rel="stylesheet" href="/css/admin.css">
+</head>
+
+<body>
+
+<h1>Admin Dashboard</h1>
+<!-- FACULTY MANAGEMENT -->
+<form id="facultyForm">
+
+<input id="name" placeholder="Full Name" required>
+<input id="email" placeholder="Email" required>
+<input id="phone" placeholder="Phone" required>
+
+<input id="password" placeholder="Password" required>
+
+<input id="subject" placeholder="Subject" required>
+
+<input id="address" placeholder="Address" required>
+
+<button type="submit">Add Faculty</button>
+
+</form>
+
+  <!-- RIGHT SIDE TABLE -->
+  <div class="table-box">
+
+    <h2>Faculty List</h2>
+
+    <table>
+      <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Phone</th>
+        <th>Subject</th>
+        <th>Photo</th>
+        <th>Action</th>
+      </tr>
+
+      <tbody id="facultyTable"></tbody>
+    </table>
+
+  </div>
+
+</div>
+<script>
+async function loadFaculty(){
+
+let res = await fetch("/faculty")
+let data = await res.json()
+
+let table = document.getElementById("facultyTable")
+table.innerHTML = ""
+
+data.forEach((f,index)=>{
+
+table.innerHTML += `
+<tr>
+<td>${index+1}</td>
+<td>${f.name}</td>
+<td>${f.email || "-"}</td>
+<td>${f.phone || "-"}</td>
+<td>${f.subject ? f.subject.join(", ") : "-"}</td>
+
+<td>
+  ${f.photo ? `<img src="${f.photo}" width="50">` : "No Photo"}
+</td>
+
+<td>
+  <button onclick="editFaculty('${f._id}','${f.name}','${f.email}','${f.phone}','${f.subject}')">Edit</button>
+  <button onclick="deleteFaculty('${f._id}')">Delete</button>
+</td>
+
+</tr>
+`
+})
+}
+
+loadFaculty()
+
+async function deleteFaculty(id){
+  await fetch("/deleteFaculty/" + id, { method: "DELETE" })
+  loadFaculty()
+}
+async function editFaculty(id,name,email,phone,subject){
+
+let newName = prompt("Edit Name", name)
+let newEmail = prompt("Edit Email", email)
+let newPhone = prompt("Edit Phone", phone)
+let newSubject = prompt("Edit Subject", subject)
+
+await fetch("/updateFaculty/" + id,{
+method:"PUT",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({
+  name:newName,
+  email:newEmail,
+  phone:newPhone,
+  subject:newSubject
+})
+})
+
+loadFaculty()
+}
+</script>
+<script>
+
+document.getElementById("facultyForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const data = {
+    name: document.getElementById("name").value,
+    email: document.getElementById("email").value,
+    phone: document.getElementById("phone").value,
+    password: document.getElementById("password").value,
+    subject: [document.getElementById("subject").value],
+    address: document.getElementById("address").value
+  };
+
+  const res = await fetch("/addFaculty", {   // 👈 छोटा fix (localhost हटाओ)
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(data)
+  });
+
+  const result = await res.json();
+  alert(result.message);
+
+  loadFaculty();  // ✅ अब table तुरंत update होगी
+});
+
+</script>
+</body>
+</html>

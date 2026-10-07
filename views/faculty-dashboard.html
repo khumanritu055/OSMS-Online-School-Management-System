@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Faculty Dashboard</title>
+<link rel="stylesheet" href="/css/student.css">
+</head>
+
+<body>
+
+<h1>Faculty Dashboard</h1>
+
+<!-- FORM -->
+<div id="facultyFormSection">
+<form class="form-box" autocomplete="off">
+
+<h3>👤 Personal Info</h3>
+<input id="name" placeholder="Full Name">
+<input id="email" placeholder="Email">
+<input id="phone" placeholder="Phone">
+
+<select id="facultyGender">
+<option value="">Select Gender</option>
+<option>Male</option>
+<option>Female</option>
+<option>Other</option>
+</select>
+
+<h3>🔐 Security</h3>
+<input id="password" type="password" placeholder="Password">
+
+<select id="subject">
+<option>Math</option>
+<option>Science</option>
+<option>English</option>
+</select>
+
+<h3>🏠 Address</h3>
+<textarea id="address"></textarea>
+
+<h3>📸 Upload Photo</h3>
+<input type="file" id="photo">
+
+<h3>💻 Skills</h3>
+<label><input type="checkbox" value="HTML">HTML</label>
+<label><input type="checkbox" value="CSS">CSS</label>
+<label><input type="checkbox" value="JS">JS</label>
+<label><input type="checkbox" value="Node">Node</label>
+
+<button type="button" onclick="saveFaculty()">Submit</button>
+
+</form>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboardSection" style="display:none;">
+<div id="profile"></div>
+
+<!-- ATTENDANCE -->
+<div class="row">
+<div class="box">
+
+<h3>📅 Add Attendance</h3>
+
+<table border="1" width="100%">
+<tr><th>Roll</th><th>Name</th><th>Status</th></tr>
+<tbody id="studentTableBody"></tbody>
+</table>
+
+<button onclick="submitAttendance()">Submit Attendance</button>
+
+</div>
+
+<div class="box">
+<h3>📋 Attendance List</h3>
+
+<table border="1" width="100%">
+<tr>
+<th>Roll</th><th>Name</th><th>Status</th><th>Faculty</th><th>Action</th>
+</tr>
+<tbody id="attendanceTable"></tbody>
+</table>
+
+</div>
+</div>
+
+<!-- SYLLABUS -->
+<div class="row">
+
+<div class="box">
+<h3>📘 Add Syllabus</h3>
+
+<input id="sySubject" placeholder="Subject">
+<input id="syTopic" placeholder="Topic">
+<input id="syDate" type="date">
+<input type="file" id="syPdf" accept="application/pdf">
+
+<button onclick="addSyllabus()">Add Syllabus</button>
+
+</div>
+
+<div class="box">
+<h3>📋 Syllabus List</h3>
+
+<table border="1" width="100%">
+<tr>
+<th>Subject</th><th>Details</th><th>Date</th><th>Faculty</th><th>Action</th>
+</tr>
+<tbody id="syllabusTable"></tbody>
+</table>
+
+</div>
+
+</div>
+
+</div>
+
+<script>
+
+// STUDENTS
+const studentUsers = [
+{name:"mina",roll:1},{name:"rita",roll:2},{name:"rahul",roll:3},
+{name:"neha",roll:4},{name:"aman",roll:5},{name:"pooja",roll:6},
+{name:"karan",roll:7},{name:"riya",roll:8},{name:"vikas",roll:9},
+{name:"sonal",roll:10}
+];
+
+// LOAD STUDENT TABLE
+function loadStudentTable(){
+let html=""
+studentUsers.forEach(s=>{
+html+=`
+<tr>
+<td>${s.roll}</td>
+<td>${s.name}</td>
+<td>
+<select id="status-${s.roll}">
+<option>Present</option>
+<option>Absent</option>
+</select>
+</td>
+</tr>`
+})
+document.getElementById("studentTableBody").innerHTML=html
+}
+
+// SAVE FACULTY (FIXED)
+function saveFaculty(){
+
+let skills=[]
+document.querySelectorAll('input[type="checkbox"]:checked')
+.forEach(cb=>skills.push(cb.value))
+
+let name=document.getElementById("name").value
+let email=document.getElementById("email").value
+let phone=document.getElementById("phone").value
+let password=document.getElementById("password").value
+let subject=document.getElementById("subject").value
+let address=document.getElementById("address").value
+
+let file=document.getElementById("photo").files[0]
+
+if(!file){
+alert("Photo select karo")
+return
+}
+
+let reader=new FileReader()
+
+reader.onload=function(){
+
+fetch("/addFaculty",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({
+name,email,phone,password,subject,address,skills,photo:reader.result
+})
+})
+.then(async()=>{
+
+let res=await fetch("/faculty")
+let all=await res.json()
+
+let user = all.find(u=>u.email===email) || all[all.length-1]
+
+document.getElementById("facultyFormSection").style.display="none"
+document.getElementById("dashboardSection").style.display="block"
+
+document.getElementById("profile").innerHTML=`
+<div class="profile-card">
+<img src="${user.photo}" width="100">
+<h2>${user.name}</h2>
+<p>${user.email}</p>
+<p>${user.subject}</p>
+</div>
+`
+
+loadStudentTable()
+loadAttendance()
+loadSyllabus()
+
+})
+}
+
+reader.readAsDataURL(file)
+}
+
+// ATTENDANCE
+async function submitAttendance(){
+let faculty=document.querySelector(".profile-card h2").innerText
+
+for(let s of studentUsers){
+let status=document.getElementById(`status-${s.roll}`).value
+
+await fetch("/addAttendance",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({roll:s.roll,name:s.name,status,faculty})
+})
+}
+
+alert("Saved")
+loadAttendance()
+}
+
+async function loadAttendance(){
+let res=await fetch("/attendance")
+let data=await res.json()
+
+let html=""
+data.forEach(a=>{
+html+=`
+<tr>
+<td>${a.roll}</td>
+<td>${a.name}</td>
+<td>${a.status}</td>
+<td>${a.faculty}</td>
+<td>
+<button onclick="editAttendance('${a._id}')">Edit</button>
+<button onclick="deleteAttendance('${a._id}')">Delete</button>
+</td>
+</tr>`
+})
+
+document.getElementById("attendanceTable").innerHTML=html
+}
+
+async function deleteAttendance(id){
+await fetch("/deleteAttendance/"+id,{method:"DELETE"})
+loadAttendance()
+}
+
+async function editAttendance(id){
+let status=prompt("Present/Absent")
+await fetch("/updateAttendance/"+id,{
+method:"PUT",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({status})
+})
+loadAttendance()
+}
+
+// SYLLABUS
+async function addSyllabus(){
+
+let faculty=document.querySelector(".profile-card h2").innerText
+
+let subject = document.getElementById("sySubject").value
+let topic = document.getElementById("syTopic").value || "PDF"
+let dateValue = document.getElementById("syDate").value
+let file=document.getElementById("syPdf").files[0]
+
+// ✅ DATE VALIDATION (yaha hona chahiye)
+if(!dateValue){
+  alert("❌ Date select karo")
+  return
+}
+
+let reader=new FileReader()
+
+reader.onload=async function(){
+
+await fetch("/addSyllabus",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({
+subject:subject,
+topic:topic,
+date:dateValue,   // ✅ yahi missing tha
+faculty:faculty,
+pdf:reader.result
+})
+})
+
+alert("Syllabus Added")
+loadSyllabus()
+}
+
+if(file) reader.readAsDataURL(file)
+else reader.onload()
+}
+async function loadSyllabus(){
+let res=await fetch("/syllabus")
+let data=await res.json()
+
+let html=""
+data.forEach(s=>{
+html+=`
+<tr>
+<td>${s.subject}</td>
+<td>
+${s.topic}
+${s.pdf?`<br><a href="${s.pdf}" target="_blank">📄 View PDF</a>`:""}
+</td>
+<td>${s.date}</td>
+<td>${s.faculty}</td>
+<td>
+<button onclick="editSyllabus('${s._id}')">Edit</button>
+<button onclick="deleteSyllabus('${s._id}')">Delete</button>
+</td>
+</tr>`
+})
+
+document.getElementById("syllabusTable").innerHTML=html
+}
+
+async function deleteSyllabus(id){
+await fetch("/deleteSyllabus/"+id,{method:"DELETE"})
+loadSyllabus()
+}
+
+async function editSyllabus(id){
+let topic=prompt("New Topic")
+await fetch("/updateSyllabus/"+id,{
+method:"PUT",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({topic})
+})
+loadSyllabus()
+}
+
+</script>
+
+</body>
+</html>

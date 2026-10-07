@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Fees Management</title>
+
+<style>
+body {
+    font-family: Arial;
+    background: linear-gradient(to right, #8e9eab, #eef2f3);
+    margin: 0;
+    padding: 20px;
+}
+
+h1 {
+    text-align: center;
+}
+
+.container {
+    display: flex;
+    gap: 20px;
+}
+
+/* LEFT FORM */
+.form-box {
+    width: 30%;
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+}
+
+.form-box input, .form-box select {
+    width: 100%;
+    margin: 8px 0;
+    padding: 10px;
+}
+
+.form-box button {
+    width: 100%;
+    padding: 10px;
+    background: blue;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+/* RIGHT TABLE */
+.table-box {
+    width: 70%;
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th {
+    background: #2d6a9f;
+    color: white;
+    padding: 10px;
+}
+
+td {
+    padding: 8px;
+    text-align: center;
+}
+
+#search {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+}
+</style>
+
+</head>
+
+<body>
+
+<h1>Admin Dashboard</h1>
+
+<div class="container">
+
+    <!-- LEFT SIDE FORM -->
+    <div class="form-box">
+        <h2>Add Fees</h2>
+
+        <input id="name" placeholder="Student Name">
+        <input id="std" placeholder="Class">
+        <input id="roll" placeholder="Roll No">
+        <input id="total" placeholder="Total Fees">
+        <input id="paid" placeholder="Paid Fees">
+        
+        <select id="method">
+            <option>Cash</option>
+            <option>Online</option>
+        </select>
+
+        <button onclick="addFees()">Add Fees</button>
+    </div>
+
+    <!-- RIGHT SIDE TABLE -->
+    <div class="table-box">
+        <h2>Fees Records</h2>
+
+        <input id="search" placeholder="Search student..." onkeyup="searchStudent()">
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Class</th>
+                    <th>Roll</th>
+                    <th>Total</th>
+                    <th>Paid</th>
+                    <th>Date</th>
+                    <th>Time</th>
+                    <th>Method</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+        </table>
+    </div>
+
+</div>
+<!-- 🔥 ADD NEW FEES SECTION -->
+
+<div style="background:white;padding:20px;border-radius:10px;margin-bottom:20px;">
+
+    <button onclick="toggleForm()" style="padding:10px;background:green;color:white;border:none;">
+        ➕ Add New Fees
+    </button>
+
+    <!-- FORM (HIDDEN) -->
+    <div id="newFeesForm" style="display:none;margin-top:15px;">
+        <input id="newStd" placeholder="Class (STD)">
+        <input id="newAmount" placeholder="Fees Amount">
+        <input id="newDate" type="date">
+
+        <button onclick="addNewFees()">Save</button>
+    </div>
+
+</div>
+
+<!-- 🔥 NEW FEES TABLE -->
+<div style="background:white;padding:20px;border-radius:10px;margin-bottom:20px;">
+    <h2>Class Fees Structure</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th>STD</th>
+                <th>Fees</th>
+                <th>Date</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody id="newFeesTable"></tbody>
+    </table>
+</div>
+
+<!-- 🔥 IMPORTANT SCRIPT -->
+<script>
+
+// 📥 LOAD DATA FROM DB
+async function loadFees() {
+    const res = await fetch("/fees");
+    const data = await res.json();
+    showData(data);
+}
+
+// 🧾 SHOW DATA
+function showData(data) {
+    const table = document.getElementById("tableBody");
+    table.innerHTML = "";
+
+    data.forEach(s => {
+        table.innerHTML += `
+        <tr>
+            <td>${s.fullName}</td>
+            <td>${s.std}</td>
+            <td>${s.rollNo}</td>
+            <td>${s.totalFees}</td>
+            <td>${s.paidFees}</td>
+            <td>${s.date}</td>
+            <td>${s.time}</td>
+            <td>${s.method}</td>
+            <td>
+                <button onclick="deleteFees('${s._id}')">❌</button>
+            </td>
+        </tr>
+        `;
+    });
+}
+
+// ➕ ADD FEES
+async function addFees() {
+    const data = {
+        fullName: document.getElementById("name").value,
+        std: document.getElementById("std").value,
+        rollNo: document.getElementById("roll").value,
+        totalFees: document.getElementById("total").value,
+        paidFees: document.getElementById("paid").value,
+        method: document.getElementById("method").value,
+        date: new Date().toLocaleDateString(),
+        time: new Date().toLocaleTimeString()
+    };
+
+    await fetch("/addFees", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+    });
+
+    loadFees();
+}
+
+// ❌ DELETE
+async function deleteFees(id) {
+    await fetch("/deleteFees/" + id, { method: "DELETE" });
+    loadFees();
+}
+
+// 🔍 SEARCH
+async function searchStudent() {
+    const value = document.getElementById("search").value.toLowerCase();
+
+    const res = await fetch("/fees");
+    const data = await res.json();
+
+    const filtered = data.filter(s =>
+        s.fullName.toLowerCase().includes(value)
+    );
+
+    showData(filtered);
+}
+
+// 🚀 INITIAL LOAD
+loadFees();
+
+// 🔥 NEW FEES ARRAY (temporary - later DB connect kar sakte ho)
+let newFeesList = [];
+
+// 🔽 SHOW / HIDE FORM
+function toggleForm() {
+    const form = document.getElementById("newFeesForm");
+    form.style.display = form.style.display === "none" ? "block" : "none";
+}
+
+// ➕ ADD NEW FEES
+function addNewFees() {
+    const std = document.getElementById("newStd").value;
+    const amount = document.getElementById("newAmount").value;
+    const date = document.getElementById("newDate").value;
+
+    if (!std || !amount || !date) {
+        alert("Fill all fields");
+        return;
+    }
+
+    const data = {
+        id: Date.now(),
+        std,
+        amount,
+        date
+    };
+
+    newFeesList.push(data);
+    showNewFees();
+
+    // clear form
+    document.getElementById("newStd").value = "";
+    document.getElementById("newAmount").value = "";
+    document.getElementById("newDate").value = "";
+}
+
+// 📊 SHOW NEW TABLE
+function showNewFees() {
+    const table = document.getElementById("newFeesTable");
+    table.innerHTML = "";
+
+    newFeesList.forEach(f => {
+        table.innerHTML += `
+        <tr>
+            <td>${f.std}</td>
+            <td>${f.amount}</td>
+            <td>${f.date}</td>
+            <td>
+                <button onclick="editNewFees(${f.id})">✏️</button>
+                <button onclick="deleteNewFees(${f.id})">❌</button>
+            </td>
+        </tr>
+        `;
+    });
+}
+
+// ❌ DELETE
+function deleteNewFees(id) {
+    newFeesList = newFeesList.filter(f => f.id !== id);
+    showNewFees();
+}
+
+// ✏️ EDIT
+function editNewFees(id) {
+    const item = newFeesList.find(f => f.id === id);
+
+    document.getElementById("newStd").value = item.std;
+    document.getElementById("newAmount").value = item.amount;
+    document.getElementById("newDate").value = item.date;
+
+    deleteNewFees(id);
+    toggleForm();
+}
+</script>
+
+</body>
+</html>

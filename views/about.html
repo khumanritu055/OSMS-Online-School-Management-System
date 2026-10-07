@@ -1,0 +1,286 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>About - Online School Management System</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+
+    body {
+      background: linear-gradient(135deg, #1d2671, #c33764);
+      color: #333;
+    }
+
+    header {
+      text-align: center;
+      padding: 100px 20px;
+      color: white;
+    }
+
+    header h1 { font-size: 3.5rem; margin-bottom: 15px; }
+    header p { font-size: 1.3rem; opacity: 0.9; }
+
+    .container {
+      max-width: 1200px;
+      margin: auto;
+      padding: 40px 20px;
+    }
+
+    .about-box {
+      background: white;
+      padding: 60px;
+      border-radius: 25px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+      margin-bottom: 50px;
+      animation: fadeUp 1s ease;
+    }
+
+    .about-box h2 {
+      font-size: 2.5rem;
+      margin-bottom: 20px;
+      color: #1d2671;
+    }
+
+    .about-box p {
+      line-height: 1.8;
+      color: #555;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 30px;
+      margin-top: 30px;
+    }
+
+    .card {
+      background: white;
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+      transition: 0.4s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #1d2671, #c33764);
+      top: 0;
+      left: -100%;
+      transition: 0.4s;
+      z-index: 0;
+    }
+
+    .card:hover::before { left: 0; }
+
+    .card:hover {
+      transform: translateY(-10px) scale(1.05);
+      color: white;
+    }
+
+    .card h3, .card p { position: relative; z-index: 1; }
+    .card h3 { margin-bottom: 10px; }
+
+    .timeline {
+      margin-top: 60px;
+    }
+
+    .timeline h2 {
+      text-align: center;
+      color: white;
+      margin-bottom: 40px;
+      font-size: 2.5rem;
+    }
+
+    .timeline-item {
+      background: white;
+      margin: 20px auto;
+      padding: 25px;
+      border-radius: 15px;
+      max-width: 700px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+      animation: fadeUp 1s ease;
+    }
+
+    .timeline-item h4 { color: #c33764; margin-bottom: 10px; }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 30px;
+      margin-top: 60px;
+    }
+
+    .stat {
+      background: white;
+      padding: 40px;
+      border-radius: 20px;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      transition: 0.3s;
+    }
+
+    .stat:hover { transform: scale(1.05); }
+
+    .stat h2 { color: #1d2671; font-size: 2.5rem; }
+    .stat p { color: #555; }
+
+    footer {
+      background: #222;
+      color: white;
+      text-align: center;
+      padding: 20px;
+      margin-top: 40px;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(40px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 50px;
+  background: linear-gradient(to right, #1d2671, #c33764);
+  color: white;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.logo {
+  font-size: 1.8rem;
+  font-weight: 600;
+}
+
+.logo span {
+  color: #ffd700;
+}
+
+.nav-links {
+  list-style: none;
+  display: flex;
+  gap: 30px;
+}
+
+.nav-links li a {
+  text-decoration: none;
+  color: white;
+  font-size: 1rem;
+  transition: 0.3s;
+}
+
+.nav-links li a:hover {
+  color: #ffd700;
+}
+
+  </style>
+</head>
+<body>
+<nav class="navbar">
+  <div class="logo">Edu<span>Spark</span></div>
+
+  <ul class="nav-links">
+    <li><a href="/">Home</a></li>
+    <li><a href="/about">About</a></li>
+    <li><a href="contact">Contact</a></li>
+    <li><a href="/features">Features</a></li>
+    <li><a href="/login">Login</a></li>
+  </ul>
+</nav>
+  <header>
+    <h1>About Our System</h1>
+    <p>Smart Digital Solution for Modern Education</p>
+  </header>
+
+  <div class="container">
+
+    <div class="about-box">
+      <h2>Overview</h2>
+      <p>
+        Online School Management System is a complete digital platform that helps schools manage their daily operations efficiently.
+        From student records to online exams, attendance tracking to communication, everything is managed in one centralized system.
+        This reduces manual work and makes school management faster, easier, and more transparent.
+      </p>
+    </div>
+
+    <div class="grid">
+      <div class="card">
+        <h3>Mission</h3>
+        <p>To simplify school administration using modern technology.</p>
+      </div>
+
+      <div class="card">
+        <h3>Vision</h3>
+        <p>To create a fully digital and smart education environment.</p>
+      </div>
+
+      <div class="card">
+        <h3>Goal</h3>
+        <p>Improve efficiency and communication across school systems.</p>
+      </div>
+
+      <div class="card">
+        <h3>Security</h3>
+        <p>Secure data management with user authentication and privacy protection.</p>
+      </div>
+    </div>
+
+    <div class="timeline">
+      <h2>System Highlights</h2>
+
+      <div class="timeline-item">
+        <h4>Easy Management</h4>
+        <p>Manage students, teachers, and classes in one place.</p>
+      </div>
+
+      <div class="timeline-item">
+        <h4>Automation</h4>
+        <p>Automates attendance, exams, and fee collection processes.</p>
+      </div>
+
+      <div class="timeline-item">
+        <h4>Real-Time Updates</h4>
+        <p>Instant notifications and communication between school and parents.</p>
+      </div>
+
+    </div>
+
+    <div class="stats">
+      <div class="stat">
+        <h2>1000+</h2>
+        <p>Students Managed</p>
+      </div>
+
+      <div class="stat">
+        <h2>100+</h2>
+        <p>Teachers Connected</p>
+      </div>
+
+      <div class="stat">
+        <h2>24/7</h2>
+        <p>System Availability</p>
+      </div>
+
+      <div class="stat">
+        <h2>99%</h2>
+        <p>Efficiency Improvement</p>
+      </div>
+    </div>
+
+  </div>
+
+  <footer>
+    <p>© 2026 Online School Management System | Designed with Gojiya Nirali,Mavani Nency,R J Khuman</p>
+  </footer>
+
+</body>
+</html>
